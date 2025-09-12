@@ -1,0 +1,142 @@
+Set(isLoading, true);
+/*Set(varGrupoDocumentoSession;LookUp(AGP_StructurePDFSessions;SessionID = 1));;
+Set(varTxtPlano;TestJson.Run(varGrupoDocumentoSession.DocumentsJSON).salida);;
+ClearCollect(
+   objDocumentosSession;
+   AddColumns(
+      Split(varTxtPlano; ";");
+      documentId; GUID(First(Split(Value; "|")).Value);
+      pages; Value(Last(FirstN(Split(Value; "|"); 2)).Value);
+      order; Value(Last(Split(Value; "|")).Value)
+   )
+);;
+Set(varCurrentPageShow;1);;
+Set(varCurrentPageXDocument;1);;*/
+
+//***SET DATOS GALERIA
+Set(varGalleryDocuments, Sort(AGP_Document​, 'Created On', SortOrder.Ascending));
+//***SET JSON PARA PCF
+ClearCollect(
+    colDocumentsJSON,
+    ShowColumns(AddColumns(varGalleryDocuments,id,AGP_Document​,pageCount,agp_numpages),id,pageCount)
+);
+
+Set(varDocumentsJSON, JSON(colDocumentsJSON, JSONFormat.IndentFour));
+
+//SET SELECT
+Set(elementoSeleccionado, First(varGalleryDocuments));
+//***SET DOCUMENTO ACTUAL
+Set(documentIdToLoad, elementoSeleccionado.AGP_Document​);
+//
+Set(oProofing, {});
+Set(oNotes, {});
+Set(varFileContent, "");
+Set(varRowID, elementoSeleccionado.AGP_Document​);
+Set(oProofing, elementoSeleccionado);
+Set(
+    oNotes,
+    First(
+        Filter(
+            AGP_Note​,
+            agp_documentid.AGP_Document​ = elementoSeleccionado.AGP_Document​ //&& Owner = varUser
+        )
+    )
+);
+Set(startTimerPdf, true);
+
+
+
+
+
+
+
+
+
+If(
+    !IsBlank(Image2_1.Image),
+    Set(
+        varFileContent,
+        With(
+            {
+                fileData: JSON(Image2_1.Image, JSONFormat.IgnoreBinaryData)
+            },
+            Mid(fileData, 2, Len(fileData) - 2)
+        )
+    );
+    Set(startTimerPdf, false);
+    Set(isLoading, false);
+    
+)
+
+
+
+
+
+
+
+
+
+//SET SELECT
+Set(isLoading, true);
+Set(oProofing, {});
+Set(oNotes, {});
+Set(varFileContent, "");
+Set(varRowID, ThisItem.AGP_Document​);
+//***SET DOCUMENTO ACTUAL
+Set(elementoSeleccionado, ThisItem);
+Set(documentIdToLoad, elementoSeleccionado.AGP_Document​);
+Set(oProofing, ThisItem);
+Set(
+    oNotes,
+    First(
+        Filter(
+            AGP_Note​,
+            agp_documentid.AGP_Document​ = ThisItem.AGP_Document​ //&& Owner = varUser
+        )
+    )
+); 
+//Set(oNotes, First(Filter(ThisItem.AGP_Note​, 'Created On' <> Blank())));//varUser)));
+
+//Set(jsonSeleccionado,First(Filter(ThisItem.AGP_Note​, Owner = varUser)).agp_content_json);
+Set(varFileContent, If(IsBlank(Image2_1.Image),"",With({fileData: JSON(Image2_1.Image, JSONFormat.IgnoreBinaryData)}, Mid(fileData, 2, Len(fileData) - 2))));
+//***SET DOCUMENTO ACTUAL JSON
+Set(varCurrentDocumentJSON,JSON({id: documentIdToLoad, data: varFileContent}, JSONFormat.IndentFour));
+Set(isLoading, false);
+
+
+
+
+
+
+
+
+
+
+If(
+    Not(IsBlank(ProofingToolCanvas1.documentToLoad)) && Text(documentIdToLoad) <> Text(ProofingToolCanvas1.documentToLoad),
+    Set(elementoSeleccionado, LookUp(varGalleryDocuments, Text(AGP_Document​) = Text(ProofingToolCanvas1.documentToLoad)));
+    Set(documentIdToLoad, elementoSeleccionado.AGP_Document​);
+
+    //SET SELECT
+    Set(isLoading, true);
+    Set(oProofing, {});
+    Set(oNotes, {});
+    Set(varFileContent, "");
+    Set(varRowID, elementoSeleccionado.AGP_Document​);
+    Set(oProofing, elementoSeleccionado);
+    Set(
+        oNotes,
+        First(
+            Filter(
+                AGP_Note​,
+                agp_documentid.AGP_Document​ = elementoSeleccionado.AGP_Document​ //&& Owner = varUser
+            )
+        )
+    ); 
+
+    Set(varFileContent, If(IsBlank(Image2_1.Image),"",With({fileData: JSON(Image2_1.Image, JSONFormat.IgnoreBinaryData)}, Mid(fileData, 2, Len(fileData) - 2))));
+    //***SET DOCUMENTO ACTUAL JSON
+    Set(varCurrentDocumentJSON,JSON({id: documentIdToLoad, data: varFileContent}, JSONFormat.IndentFour));
+    Set(isLoading, false);
+);
+If(!IsBlank(ProofingToolCanvas1.boundField),Select(btnGuardar))
